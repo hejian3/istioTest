@@ -6,10 +6,3 @@ spring:
     name: istioTest
   main:
     allow-bean-definition-overriding: true
-
-  r2dbc:
-    url: r2dbc:postgresql://pg.smartbike.xiaoantech.com:8432/xabike
-    username: root
-    password: Xiaoan123
-    pool:
-      max-size: 32
