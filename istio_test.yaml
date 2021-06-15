@@ -1,47 +1,47 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: java-hello
+  name: java-provider
   labels:
-    app: java-hello
-    service: java-hello
+    app: java-provider
+    service: java-provider
 spec:
   ports:
     - port: 8080
       name: http
   selector:
-    app: java-hello
+    app: java-provider
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: java-hello
+  name: java-provider
   labels:
-    account: java-hello
+    account: java-provider
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: java-hello-v1
+  name: java-provider-v1
   labels:
-    app: java-hello
+    app: java-provider
     version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: java-hello
+      app: java-provider
       version: v1
   template:
     metadata:
       labels:
-        app: java-hello
+        app: java-provider
         version: v1
     spec:
-      serviceAccountName: java-hello
+      serviceAccountName: java-provider
       containers:
-        - name: java-hello
-          image: hejian/istio
+        - name: java-provider
+          image: hejian/service_provider
           imagePullPolicy: IfNotPresent
           env:
             - name: LOG_DIR
@@ -61,3 +61,65 @@ spec:
         - name: tmp
           emptyDir: {}
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-consumer
+  labels:
+    app: java-consumer
+    service: java-consumer
+spec:
+  ports:
+    - port: 8080
+      name: http
+  selector:
+    app: java-consumer
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: java-consumer
+  labels:
+    account: java-consumer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-consumer-v1
+  labels:
+    app: java-consumer
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-consumer
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: java-consumer
+        version: v1
+    spec:
+      serviceAccountName: java-consumer
+      containers:
+        - name: java-consumer
+          image: hejian/service_consumer
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: LOG_DIR
+              value: "/tmp/logs"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: wlp-output
+              mountPath: /opt/ibm/wlp/output
+          securityContext:
+            runAsUser: 1000
+      volumes:
+        - name: wlp-output
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
